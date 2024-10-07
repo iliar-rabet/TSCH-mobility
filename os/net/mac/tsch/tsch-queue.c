@@ -57,10 +57,13 @@
 #include "net/nbr-table.h"
 #include <string.h>
 
+
 /* Log configuration */
 #include "sys/log.h"
 #define LOG_MODULE "TSCH Queue"
 #define LOG_LEVEL LOG_LEVEL_MAC
+
+static bool flag;
 
 /* Check if TSCH_QUEUE_NUM_PER_NEIGHBOR is power of two */
 #if (TSCH_QUEUE_NUM_PER_NEIGHBOR & (TSCH_QUEUE_NUM_PER_NEIGHBOR - 1)) != 0
@@ -262,6 +265,9 @@ tsch_queue_add_packet(const linkaddr_t *addr, uint8_t max_transmissions,
             ringbufindex_put(&n->tx_ringbuf);
             LOG_DBG("packet is added put_index %u, packet %p\n",
                    put_index, p);
+            #ifdef Q_STABLE
+              tsch_queue_count_all_queues();
+            #endif
             return p;
           } else {
             memb_free(&packet_memb, p);
@@ -393,6 +399,56 @@ tsch_queue_reset(void)
   }
 }
 /*---------------------------------------------------------------------------*/
+#ifdef Q_STABLE
+
+void 
+ask_for_extra_link(linkaddr_t * overflows_node_ll ){
+  LOG_INFO("setting q_unstable\n");
+  q_unstable=true;
+  overflow_ip = uip_ds6_nbr_ipaddr_from_lladdr((uip_lladdr_t *)overflows_node_ll);
+  
+  // uip_ipaddr_t root_ip;
+  // char payload[LINKADDR_SIZE];
+  
+  // if(NETSTACK_ROUTING.node_is_reachable() && NETSTACK_ROUTING.get_root_ipaddr(&root_ip)) {      
+            
+      // LOG_INFO("SIZE: %lu", sizeof(overflows_node_ll));
+      // LOG_INFO("setting q_unstable\n");
+      // q_unstable=true;
+
+      // memcpy(payload, overflows_node_ll, LINKADDR_SIZE);
+      // simple_udp_sendto(&neg_conn, payload, strlen(payload), &root_ip);
+  // }
+}
+
+
+void
+tsch_queue_count_all_queues(void)
+{
+  LOG_INFO("ALL the queues:");
+  if(!tsch_is_locked()) {
+    struct tsch_neighbor *n = (struct tsch_neighbor *)nbr_table_head(tsch_neighbors);
+    while(n != NULL) {
+      
+      struct tsch_neighbor *next_n = (struct tsch_neighbor *)nbr_table_next(tsch_neighbors, n);
+      if(!n->is_broadcast  && !n->tx_links_count) {
+        int qsize = tsch_queue_nbr_packet_count(n);
+        LOG_INFO("qsize: %d ",qsize);
+        LOG_INFO_LLADDR(tsch_queue_get_nbr_address(n));
+        LOG_INFO("\n");
+
+        if(qsize > 4 && flag==false){
+          ask_for_extra_link(tsch_queue_get_nbr_address(n));
+          flag=true;
+        }
+      }
+      n = next_n;
+    }
+  }
+}
+
+#endif
+
 /* Deallocate neighbors with empty queue */
 void
 tsch_queue_free_unused_neighbors(void)
@@ -541,7 +597,9 @@ tsch_queue_init(void)
   memb_init(&packet_memb);
   /* Add virtual EB and the broadcast neighbors */
   n_eb = tsch_queue_add_nbr(&tsch_eb_address);
-  n_broadcast = tsch_queue_add_nbr(&tsch_broadcast_address);
+  n_broadcast = tsch_queue_add_nbr(&tsch_broadcast_address);  
+  flag = false;
+
 }
 /*---------------------------------------------------------------------------*/
 /** @} */

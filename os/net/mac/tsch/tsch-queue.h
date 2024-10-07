@@ -189,5 +189,18 @@ void tsch_queue_update_all_backoff_windows(const linkaddr_t *dest_addr);
  */
 void tsch_queue_init(void);
 
+
+// #define Q_STABLE
+
+# ifdef Q_STABLE
+    #include "net/ipv6/simple-udp.h"
+    void tsch_queue_count_all_queues(void);
+    #define NEG_PORT 4567
+    #define NEG_PORT_SERVER 7654
+    extern bool q_unstable;
+    extern uip_ipaddr_t * overflow_ip;
+#endif
+
+
 #endif /* TSCH_QUEUE_H_ */
 /** @} */
