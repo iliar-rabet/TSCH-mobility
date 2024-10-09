@@ -1,4 +1,4 @@
-[![The paper]](http://www.es.mdu.se/publications/6988-Forte__Hybrid_Traffic_Aware_Scheduling_for_Mobile_TSCH_Nodes)
+[![The link to the paper]](http://www.es.mdu.se/publications/6988-Forte__Hybrid_Traffic_Aware_Scheduling_for_Mobile_TSCH_Nodes)
 
 
 # Forte: Mobility Management for TSCH Networks
