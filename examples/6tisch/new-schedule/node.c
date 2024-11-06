@@ -11,7 +11,7 @@
 
 #include "neg.h"
 
-#include "net/routing/rpl-lite/rpl-types.h"
+// #include "net/routing/rpl-classic/"
 #define LOG_MODULE "App"
 #define LOG_LEVEL LOG_LEVEL_INFO
 
@@ -22,10 +22,13 @@
 PROCESS(node_process, "TSCH Schedule Node");
 
 # ifdef Q_STABLE
+#include "net/routing/rpl-lite/rpl-timers.h"
     // static struct simple_udp_connection server_neg_conn;  
     static struct simple_udp_connection neg_conn;
     bool q_unstable=false;
-
+    #if BC_STABLE
+    bool bc_unstable=false;
+    #endif
 PROCESS(neg_process, "NEG process");
 AUTOSTART_PROCESSES(&node_process, &neg_process);
 
@@ -38,7 +41,6 @@ AUTOSTART_PROCESSES(&node_process);
 #define APP_SLOTFRAME_HANDLE 1
 /* Put all unicast cells on the same timeslot (for demonstration purposes only) */
 #define APP_UNICAST_TIMESLOT 1
-
 
 
 static void
@@ -78,6 +80,17 @@ neg_callback(struct simple_udp_connection *c,
     LOG_INFO_6ADDR(sender_addr);
     LOG_INFO(" %u \n", p.slotframe);
 
+    if(p.is_broadcast){
+      LOG_INFO("adding BC\n");
+      rpl_timers_dio_reset("TRICKLE RESET");
+      tsch_schedule_add_link(sf_common,
+      LINK_OPTION_TX | LINK_OPTION_RX  | LINK_OPTION_SHARED,
+          LINK_TYPE_ADVERTISING, &tsch_broadcast_address,
+          p.slotframe, 0, 1);
+      // simple_udp_sendto(&neg_conn, "ACKBC", 5, sender_addr);
+
+    }
+
     if(p.isRX){
       LOG_INFO("adding rx\n");
       tsch_schedule_add_link(sf_unicast,
@@ -110,15 +123,22 @@ PROCESS_THREAD(neg_process, ev, data)
   if (simple_udp_register(&neg_conn, NEG_PORT, NULL, NEG_PORT, neg_callback) == 0)
     LOG_INFO("NEG UDP not OK\n");
   
-  etimer_set(&neg_timer, random_rand() % SEND_INTERVAL);
-  
- while(1) {
+  etimer_set(&neg_timer, START_AFTER * CLOCK_SECOND);
+  bc_unstable=false;
+  while(1) {
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&neg_timer));
     if(NETSTACK_ROUTING.node_is_reachable() && NETSTACK_ROUTING.get_root_ipaddr(&root_ip)) {
       /* Send network uptime timestamp to the network root node */  
       
+      #ifdef BC_STABLE
+      if(bc_unstable==true ){
+          // LOG_INFO("Asking for extra BC\n");
+          // simple_udp_sendto(&neg_conn, "bc\n", strlen("bc\n"), &root_ip);
+          // bc_unstable=false;
+      }
+      else {
+      #endif
       if(q_unstable == true){
-        LOG_INFO("IF Q_UNSTABLE\n");
         simple_udp_sendto(&neg_conn, (void *)overflow_ip, sizeof(uip_ipaddr_t), &root_ip);
         LOG_INFO("Asking for extra ");
         LOG_INFO_6ADDR(&root_ip); 
@@ -126,8 +146,11 @@ PROCESS_THREAD(neg_process, ev, data)
         // memcpy(payload, overflows_node_ll, LINKADDR_SIZE);
 
       }
+      #ifdef BC_STABLE
+      }
+      #endif
     }
-    etimer_set(&neg_timer, SEND_INTERVAL * 2);
+    etimer_set(&neg_timer, CLOCK_SECOND);
   }
 
   PROCESS_END();
@@ -166,7 +189,7 @@ PROCESS_THREAD(node_process, ev, data)
           LOG_INFO_(", seqnum %" PRIu32 " ;\n", seqnum);
           simple_udp_sendto(&udp_conn, &seqnum, sizeof(seqnum), &dst);
 
-          LOG_INFO("DIO INTERVAL %d\n",rpl_get_any_dag()->dio_intcurrent);
+          // LOG_INFO("DIO INTERVAL %d\n",rpl_get_any_dag()->dio_intcurrent);
       }
       etimer_set(&periodic_timer, random_rand() % SEND_INTERVAL);
   

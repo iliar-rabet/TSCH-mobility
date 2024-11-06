@@ -54,7 +54,12 @@
 #define TSCH_SCHEDULE_CONF_WITH_6TISCH_MINIMAL 0
 
 /* Size of the application-specific schedule; a number relatively prime to the hopseq length */
-#define APP_SLOTFRAME_SIZE 17
+// #define APP_SLOTFRAME_SIZE 17
+#define START_AFTER 300
+// #define Q_STABLE 1
+// #define BC_STABLE 1
+
+// #define A3_MANAGEMENT 1
 
 #if WITH_SECURITY
 
@@ -68,7 +73,7 @@
 /*******************************************************/
 
 /* Logging */
-#define LOG_CONF_LEVEL_RPL                         LOG_LEVEL_WARN
+#define LOG_CONF_LEVEL_RPL                         LOG_LEVEL_INFO
 #define LOG_CONF_LEVEL_TCPIP                       LOG_LEVEL_WARN
 #define LOG_CONF_LEVEL_IPV6                        LOG_LEVEL_WARN
 #define LOG_CONF_LEVEL_6LOWPAN                     LOG_LEVEL_WARN

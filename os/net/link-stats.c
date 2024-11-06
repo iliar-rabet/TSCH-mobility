@@ -57,7 +57,7 @@
 
 /* EWMA (exponential moving average) used to maintain statistics over time */
 #define EWMA_SCALE                     100
-#define EWMA_ALPHA                      10
+#define EWMA_ALPHA                      80
 #define EWMA_BOOTSTRAP_ALPHA            25
 
 /* ETX fixed point divisor. 128 is the value used by RPL (RFC 6551 and RFC 6719) */

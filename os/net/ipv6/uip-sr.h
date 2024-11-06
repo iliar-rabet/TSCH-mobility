@@ -98,6 +98,9 @@ typedef struct uip_sr_node {
   us with the prefix */
   unsigned char link_identifier[8];
   struct uip_sr_node *parent;
+  #ifdef Q_STABLE
+  bool acked;
+  #endif
 } uip_sr_node_t;
 
 /********** Public functions **********/

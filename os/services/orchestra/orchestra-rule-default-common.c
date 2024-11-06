@@ -39,6 +39,7 @@
 #include "orchestra.h"
 
 static uint16_t slotframe_handle = 0;
+struct tsch_slotframe *sf_common;
 
 #if ORCHESTRA_EBSF_PERIOD > 0
 /* There is a slotframe for EBs, use this slotframe for non-EB traffic only */
@@ -68,7 +69,7 @@ init(uint16_t sf_handle)
   slotframe_handle = sf_handle;
   /* Default slotframe: for broadcast or unicast to neighbors we
    * do not have a link to */
-  struct tsch_slotframe *sf_common = tsch_schedule_add_slotframe(slotframe_handle, ORCHESTRA_COMMON_SHARED_PERIOD);
+  sf_common = tsch_schedule_add_slotframe(slotframe_handle, ORCHESTRA_COMMON_SHARED_PERIOD);
   tsch_schedule_add_link(sf_common,
       LINK_OPTION_RX | LINK_OPTION_TX | LINK_OPTION_SHARED,
       ORCHESTRA_COMMON_SHARED_TYPE, &tsch_broadcast_address,

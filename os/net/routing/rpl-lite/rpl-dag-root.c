@@ -47,8 +47,21 @@
 /* Log configuration */
 #include "sys/log.h"
 #define LOG_MODULE "RPL"
-#define LOG_LEVEL LOG_LEVEL_RPL
+#define LOG_LEVEL LOG_LEVEL_INFO
 
+#ifdef CLUSTER
+void
+print_clusters()
+{
+  int n = uip_sr_num_nodes();
+    int adjMatrix[n][n] = {
+      {0, 1, 1, 0},
+      {1, 0, 1, 1},
+      {1, 1, 0, 0},
+      {0, 1, 0, 0}
+  };
+}
+#endif
 /*---------------------------------------------------------------------------*/
 void
 rpl_dag_root_print_links(const char *str)

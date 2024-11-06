@@ -55,6 +55,14 @@
 #include "sys/critical.h"
 
 #include "sys/log.h"
+
+#include "net/routing/rpl-lite/rpl-neighbor.h"
+#include "net/link-stats.h"
+#include "net/packetbuf.h"
+#include "net/ipv6/uip.h"
+extern bool bc_unstable;
+
+
 /* TSCH debug macros, i.e. to set LEDs or GPIOs on various TSCH
  * timeslot events */
 #ifndef TSCH_DEBUG_INIT

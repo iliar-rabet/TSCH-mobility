@@ -46,7 +46,7 @@
 #include "net/packetbuf.h"
 
 static uint16_t slotframe_handle = 0;
-static struct tsch_slotframe *sf_unicast;
+struct tsch_slotframe *sf_unicast;
 
 /*---------------------------------------------------------------------------*/
 static uint16_t
