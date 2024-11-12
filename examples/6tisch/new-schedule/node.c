@@ -124,7 +124,9 @@ PROCESS_THREAD(neg_process, ev, data)
     LOG_INFO("NEG UDP not OK\n");
   
   etimer_set(&neg_timer, START_AFTER * CLOCK_SECOND);
+  #ifdef BC_STABLE
   bc_unstable=false;
+  #endif
   while(1) {
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&neg_timer));
     if(NETSTACK_ROUTING.node_is_reachable() && NETSTACK_ROUTING.get_root_ipaddr(&root_ip)) {

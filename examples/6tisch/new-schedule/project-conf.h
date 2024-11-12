@@ -53,6 +53,12 @@
 /* Disable the 6TiSCH minimal schedule */
 #define TSCH_SCHEDULE_CONF_WITH_6TISCH_MINIMAL 0
 
+#define ORCHESTRA_CONF_COMMON_SHARED_PERIOD 499 //ksh.. original: 31. (broadcast and default slotframe length)
+#define ORCHESTRA_CONF_UNICAST_PERIOD 17 // consider A3_UNICAST_MAX_REGION when using A3
+#define ORCHESTRA_CONF_EBSF_PERIOD 397//.. original: 397. (EB slotframe)
+
+#define RPL_CONF_WITH_PROBING 0
+#define RPL_CONF_WITH_DAO_ACK 0
 /* Size of the application-specific schedule; a number relatively prime to the hopseq length */
 // #define APP_SLOTFRAME_SIZE 17
 #define START_AFTER 300

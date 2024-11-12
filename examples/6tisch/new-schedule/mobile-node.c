@@ -141,7 +141,9 @@ PROCESS_THREAD(neg_process, ev, data)
 
   // char payload[LINKADDR_SIZE];
   uip_ipaddr_t root_ip;
-  uip_ipaddr_t bc_ip;
+  #ifdef BC_STABLE
+    uip_ipaddr_t bc_ip;
+  #endif
 
   PROCESS_BEGIN();
 
@@ -150,7 +152,9 @@ PROCESS_THREAD(neg_process, ev, data)
   
   etimer_set(&neg_timer, START_AFTER * CLOCK_SECOND);
   PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&neg_timer));
+  #ifdef BC_STABLE
   bc_unstable=false;
+  #endif
   etimer_set(&neg_timer, CLOCK_SECOND);
 
  while(1) {

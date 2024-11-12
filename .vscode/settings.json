@@ -1,0 +1,9 @@
+{
+    "files.associations": {
+        "orchestra.h": "c",
+        "rpl-dag-root.h": "c",
+        "neg.h": "c",
+        "packetbuf.h": "c",
+        "*.ipp": "c"
+    }
+}

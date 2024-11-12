@@ -89,45 +89,45 @@ ask_for_extra_bc(linkaddr_t * overflows_node_ll ){
 }
 #endif
 
-void 
-ask_for_extra_link(linkaddr_t * overflows_node_ll ){
-  LOG_INFO("setting q_unstable\n");
-  q_unstable=true;
-  overflow_ip = uip_ds6_nbr_ipaddr_from_lladdr((uip_lladdr_t *)overflows_node_ll);
-  }
+// void 
+// ask_for_extra_link(linkaddr_t * overflows_node_ll ){
+//   LOG_INFO("setting q_unstable\n");
+//   q_unstable=true;
+//   overflow_ip = uip_ds6_nbr_ipaddr_from_lladdr((uip_lladdr_t *)overflows_node_ll);
+//   }
 
 
-void
-tsch_queue_count_all_queues(void)
-{
-  LOG_INFO("ALL the queues:");
-  if(!tsch_is_locked()) {
-    struct tsch_neighbor *n = (struct tsch_neighbor *)nbr_table_head(tsch_neighbors);
-    while(n != NULL) {
+// void
+// tsch_queue_count_all_queues(void)
+// {
+//   LOG_INFO("ALL the queues:");
+//   if(!tsch_is_locked()) {
+//     struct tsch_neighbor *n = (struct tsch_neighbor *)nbr_table_head(tsch_neighbors);
+//     while(n != NULL) {
       
-      struct tsch_neighbor *next_n = (struct tsch_neighbor *)nbr_table_next(tsch_neighbors, n);
-      if(!n->tx_links_count) {
-        int qsize = tsch_queue_nbr_packet_count(n);
-        LOG_INFO("qsize: %d ",qsize);
-        LOG_INFO_LLADDR(tsch_queue_get_nbr_address(n));
-        LOG_INFO("\n");
-        #if BC_STABLE
-        if((n->is_broadcast || n->is_time_source) && qsize > 5){
-          LOG_INFO("other frames\n ");
-          ask_for_extra_bc(tsch_queue_get_nbr_address(n));
+//       struct tsch_neighbor *next_n = (struct tsch_neighbor *)nbr_table_next(tsch_neighbors, n);
+//       if(!n->tx_links_count) {
+//         int qsize = tsch_queue_nbr_packet_count(n);
+//         LOG_INFO("qsize: %d ",qsize);
+//         LOG_INFO_LLADDR(tsch_queue_get_nbr_address(n));
+//         LOG_INFO("\n");
+//         #if BC_STABLE
+//         if((n->is_broadcast || n->is_time_source) && qsize > 5){
+//           LOG_INFO("other frames\n ");
+//           ask_for_extra_bc(tsch_queue_get_nbr_address(n));
           
-        }
-        #endif
-        // int metric=rpl_get_parent_link_metric(p);
-        if(qsize > 4 ){
-          ask_for_extra_link(tsch_queue_get_nbr_address(n));
-          // flag=true;
-        }
-      }
-      n = next_n;
-    }
-  }
-}
+//         }
+//         #endif
+//         // int metric=rpl_get_parent_link_metric(p);
+//         if(qsize > 4 ){
+//           ask_for_extra_link(tsch_queue_get_nbr_address(n));
+//           // flag=true;
+//         }
+//       }
+//       n = next_n;
+//     }
+//   }
+// }
 
 #endif
 /*---------------------------------------------------------------------------*/
@@ -443,10 +443,9 @@ tsch_queue_packet_sent(struct tsch_neighbor *n, struct tsch_packet *p,
       const struct link_stats * stats = rpl_neighbor_get_link_stats(par);
       if(stats != NULL){
       int16_t avg_rssi = stats->rssi;
-      avg_rssi++;
       printf("avg: %d instant: %d\n",avg_rssi,radio_last_rssi);  
       int deviation = avg_rssi - radio_last_rssi;
-      if(deviation > 5 || deviation < -5){
+      if(deviation > 10 || deviation < -10){
         bc_unstable=true;
       }
     }

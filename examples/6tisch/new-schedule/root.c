@@ -29,9 +29,11 @@ PROCESS(node_process, "TSCH Schedule Node");
     bool q_unstable=false;
     bool bc_unstable=false;
     int scheduled_slots[40];
-    static bool enable_bc;
+    #ifdef BC_STABLE
+      static bool enable_bc;
+      static struct ctimer ack_timer;
+    #endif
     int tree[NUM_NODES];
-    static struct ctimer ack_timer;
 PROCESS(neg_process, "NEG process");
 AUTOSTART_PROCESSES(&node_process, &neg_process);
 #else
