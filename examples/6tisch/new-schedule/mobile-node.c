@@ -1,4 +1,4 @@
-#include "contiki.h"
+  #include "contiki.h"
 #include "net/ipv6/simple-udp.h"
 #include "net/mac/tsch/tsch.h"
 #include "net/mac/tsch/tsch-queue.h"
@@ -12,19 +12,20 @@
 #include "net/packetbuf.h"
 
 #include "neg.h"
+#include "call-back.h"
+
+uip_ipaddr_t * overflow_ip;
 
 #define LOG_MODULE "App"
 #define LOG_LEVEL LOG_LEVEL_INFO
 
 #define UDP_PORT	8765
-#define SEND_INTERVAL		  (10 * CLOCK_SECOND)
 
 
 PROCESS(node_process, "TSCH Schedule Node");
 
-# ifdef Q_STABLE
+#if Q_STABLE
   #include "net/routing/rpl-lite/rpl-timers.h"
-  // static struct simple_udp_connection server_neg_conn;  
   static struct simple_udp_connection neg_conn;
   bool q_unstable=false;
   #if BC_STABLE
@@ -85,63 +86,21 @@ PROCESS_THREAD(node_process, ev, data)
         LOG_INFO_(", seqnum %" PRIu32 " ;\n", seqnum);
         simple_udp_sendto(&udp_conn, &seqnum, sizeof(seqnum), &dst);
 
-        etimer_set(&periodic_timer, random_rand() % SEND_INTERVAL);
+        etimer_set(&periodic_timer, random_rand() % M_SEND_INTERVAL);
     }
-    etimer_set(&periodic_timer, random_rand() % SEND_INTERVAL);
+    etimer_set(&periodic_timer, random_rand() % M_SEND_INTERVAL);
   }
   PROCESS_END();
 }
 
-# ifdef Q_STABLE
-static void
-neg_callback(struct simple_udp_connection *c,
-          const uip_ipaddr_t *sender_addr,
-          uint16_t sender_port,
-          const uip_ipaddr_t *receiver_addr,
-          uint16_t receiver_port,
-          const uint8_t *data,
-          uint16_t datalen)
-{
-  
-    struct  neg_pack p;
-    memcpy(&p, data, sizeof(p));
-    LOG_INFO("NEG received from ");
-    LOG_INFO_6ADDR(sender_addr);
-    LOG_INFO(" %u \n", p.slotframe);
-
-    if(p.is_broadcast){
-      LOG_INFO("adding BC\n");
-      tsch_schedule_add_link(sf_common,
-      LINK_OPTION_TX | LINK_OPTION_RX  | LINK_OPTION_SHARED,
-          LINK_TYPE_ADVERTISING, &tsch_broadcast_address,
-          p.slotframe, 0, 1);
-    }
-    if(p.isRX){
-      LOG_INFO("adding rx\n");
-      tsch_schedule_add_link(sf_unicast,
-          LINK_OPTION_RX | LINK_OPTION_SHARED,
-          LINK_TYPE_ADVERTISING, &tsch_broadcast_address,
-          p.slotframe, 0, 1);
-    
-    }
-    else 
-    {
-        LOG_INFO("adding tx\n");
-        tsch_schedule_add_link(sf_unicast,
-          LINK_OPTION_TX | LINK_OPTION_SHARED,
-          LINK_TYPE_ADVERTISING, &tsch_broadcast_address,
-          p.slotframe, 0, 1);
-    }
-
-}
-
+#if Q_STABLE
 PROCESS_THREAD(neg_process, ev, data)
 {
   static struct etimer neg_timer;
 
   // char payload[LINKADDR_SIZE];
   uip_ipaddr_t root_ip;
-  #ifdef BC_STABLE
+  #if BC_STABLE
     uip_ipaddr_t bc_ip;
   #endif
 
@@ -152,7 +111,7 @@ PROCESS_THREAD(neg_process, ev, data)
   
   etimer_set(&neg_timer, START_AFTER * CLOCK_SECOND);
   PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&neg_timer));
-  #ifdef BC_STABLE
+  #if BC_STABLE
   bc_unstable=false;
   #endif
   etimer_set(&neg_timer, CLOCK_SECOND);
@@ -162,7 +121,7 @@ PROCESS_THREAD(neg_process, ev, data)
     if(NETSTACK_ROUTING.node_is_reachable() && NETSTACK_ROUTING.get_root_ipaddr(&root_ip)) {
       /* Send network uptime timestamp to the network root node */  
       
-      #ifdef BC_STABLE
+      #if BC_STABLE
       if(bc_unstable==false){
         //stop sending
         mobility_mode=false;
@@ -179,7 +138,7 @@ PROCESS_THREAD(neg_process, ev, data)
           bc_unstable=false;
           mobility_mode=true;
 
-          rpl_timers_dio_reset("TRICKLE RESET MN");
+          // rpl_timers_dio_reset("TRICKLE RESET MN");
 
       }
       else {
@@ -191,8 +150,16 @@ PROCESS_THREAD(neg_process, ev, data)
         q_unstable=false;
         // memcpy(payload, overflows_node_ll, LINKADDR_SIZE);
       }
-      #ifdef BC_STABLE
+      #if BC_STABLE
       }
+      #endif
+      #if ENERGEST_CONF_ON
+          printf(" Radio LISTEN %4lus TRANSMIT %4lus OFF      %4lus\n",
+           to_seconds(energest_type_time(ENERGEST_TYPE_LISTEN)),
+           to_seconds(energest_type_time(ENERGEST_TYPE_TRANSMIT)),
+           to_seconds(ENERGEST_GET_TOTAL_TIME()
+                      - energest_type_time(ENERGEST_TYPE_TRANSMIT)
+                      - energest_type_time(ENERGEST_TYPE_LISTEN)));
       #endif
     }
     etimer_set(&neg_timer, 2*CLOCK_SECOND);

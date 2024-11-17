@@ -72,6 +72,7 @@ static bool flag;
 
 #include "net/link-stats.h"
 
+
 /* We have as many packets are there are queuebuf in the system */
 MEMB(packet_memb, struct tsch_packet, QUEUEBUF_NUM);
 NBR_TABLE(struct tsch_neighbor, tsch_neighbors);
@@ -80,7 +81,8 @@ NBR_TABLE(struct tsch_neighbor, tsch_neighbors);
 struct tsch_neighbor *n_broadcast;
 struct tsch_neighbor *n_eb;
 
-#ifdef Q_STABLE
+#if Q_STABLE
+extern bool bc_unstable;
 #if BC_STABLE
 void 
 ask_for_extra_bc(linkaddr_t * overflows_node_ll ){
@@ -88,46 +90,6 @@ ask_for_extra_bc(linkaddr_t * overflows_node_ll ){
   bc_unstable=true;  
 }
 #endif
-
-// void 
-// ask_for_extra_link(linkaddr_t * overflows_node_ll ){
-//   LOG_INFO("setting q_unstable\n");
-//   q_unstable=true;
-//   overflow_ip = uip_ds6_nbr_ipaddr_from_lladdr((uip_lladdr_t *)overflows_node_ll);
-//   }
-
-
-// void
-// tsch_queue_count_all_queues(void)
-// {
-//   LOG_INFO("ALL the queues:");
-//   if(!tsch_is_locked()) {
-//     struct tsch_neighbor *n = (struct tsch_neighbor *)nbr_table_head(tsch_neighbors);
-//     while(n != NULL) {
-      
-//       struct tsch_neighbor *next_n = (struct tsch_neighbor *)nbr_table_next(tsch_neighbors, n);
-//       if(!n->tx_links_count) {
-//         int qsize = tsch_queue_nbr_packet_count(n);
-//         LOG_INFO("qsize: %d ",qsize);
-//         LOG_INFO_LLADDR(tsch_queue_get_nbr_address(n));
-//         LOG_INFO("\n");
-//         #if BC_STABLE
-//         if((n->is_broadcast || n->is_time_source) && qsize > 5){
-//           LOG_INFO("other frames\n ");
-//           ask_for_extra_bc(tsch_queue_get_nbr_address(n));
-          
-//         }
-//         #endif
-//         // int metric=rpl_get_parent_link_metric(p);
-//         if(qsize > 4 ){
-//           ask_for_extra_link(tsch_queue_get_nbr_address(n));
-//           // flag=true;
-//         }
-//       }
-//       n = next_n;
-//     }
-//   }
-// }
 
 #endif
 /*---------------------------------------------------------------------------*/
@@ -317,7 +279,7 @@ tsch_queue_add_packet(const linkaddr_t *addr, uint8_t max_transmissions,
             ringbufindex_put(&n->tx_ringbuf);
             LOG_DBG("packet is added put_index %u, packet %p\n",
                    put_index, p);
-            #ifdef Q_STABLE
+            #if Q_STABLE
               tsch_queue_count_all_queues();
             #endif
 
@@ -431,7 +393,7 @@ tsch_queue_packet_sent(struct tsch_neighbor *n, struct tsch_packet *p,
     }
   }
 
-      #ifdef BC_STABLE
+      #if BC_STABLE
     int radio_last_rssi;
     NETSTACK_RADIO.get_value(RADIO_PARAM_LAST_RSSI, &radio_last_rssi);
     static rpl_nbr_t * par;
@@ -473,28 +435,15 @@ tsch_queue_reset(void)
   }
 }
 /*---------------------------------------------------------------------------*/
-#ifdef Q_STABLE
+#if Q_STABLE
 
 void 
 ask_for_extra_link(linkaddr_t * overflows_node_ll ){
   LOG_INFO("setting q_unstable\n");
   q_unstable=true;
   overflow_ip = uip_ds6_nbr_ipaddr_from_lladdr((uip_lladdr_t *)overflows_node_ll);
-  
-  // uip_ipaddr_t root_ip;
-  // char payload[LINKADDR_SIZE];
-  
-  // if(NETSTACK_ROUTING.node_is_reachable() && NETSTACK_ROUTING.get_root_ipaddr(&root_ip)) {      
-            
-      // LOG_INFO("SIZE: %lu", sizeof(overflows_node_ll));
-      // LOG_INFO("setting q_unstable\n");
-      // q_unstable=true;
-
-      // memcpy(payload, overflows_node_ll, LINKADDR_SIZE);
-      // simple_udp_sendto(&neg_conn, payload, strlen(payload), &root_ip);
-  // }
 }
-
+extern int dc;
 
 void
 tsch_queue_count_all_queues(void)
@@ -511,7 +460,11 @@ tsch_queue_count_all_queues(void)
         LOG_INFO_LLADDR(tsch_queue_get_nbr_address(n));
         LOG_INFO("\n");
 
-        if(qsize > 4 && flag==false){
+        rpl_nbr_t * best = rpl_neighbor_select_best();
+        int threshold = RANK_WEIGHT * (best->rank)/128 + DUTY_CYCLE_WEIGHT * dc;
+        LOG_INFO("rank %d dc %d threshold %d",best->rank, dc, threshold);
+
+        if(qsize > threshold && flag==false){
           ask_for_extra_link(tsch_queue_get_nbr_address(n));
           flag=true;
         }

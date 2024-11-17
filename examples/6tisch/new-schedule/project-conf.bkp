@@ -7,8 +7,6 @@
 #define WITH_SECURITY 0
 #endif /* WITH_SECURITY */
 
-#define ENERGEST_CONF_ON 1
-
 /* USB serial takes space, free more space elsewhere */
 #define SICSLOWPAN_CONF_FRAG 0
 //#define UIP_CONF_BUFFER_SIZE 160
@@ -17,10 +15,15 @@
 /******************* Configure TSCH ********************/
 /*******************************************************/
 
+#define ENERGEST_CONF_ON 1
+
+#define DUTY_CYCLE_WEIGHT 1
+#define RANK_WEIGHT 1
+
 /* Disable the 6TiSCH minimal schedule */
 #define TSCH_SCHEDULE_CONF_WITH_6TISCH_MINIMAL 0
 
-#define ORCHESTRA_CONF_COMMON_SHARED_PERIOD 627
+#define ORCHESTRA_CONF_COMMON_SHARED_PERIOD 151
 #define ORCHESTRA_CONF_UNICAST_PERIOD 17 
 #define ORCHESTRA_CONF_EBSF_PERIOD 397
 
@@ -31,8 +34,8 @@
 #define START_AFTER 600
 #define NUM_NODES 8
 
-#define Q_STABLE 0
-#define BC_STABLE 0
+#define Q_STABLE 1
+#define BC_STABLE 1
 
 #define M_SECONDS 10
 #define S_SECONDS 20

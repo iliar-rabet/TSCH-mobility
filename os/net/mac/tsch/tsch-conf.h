@@ -176,7 +176,7 @@
 #ifdef TSCH_CONF_MAX_JOIN_PRIORITY
 #define TSCH_MAX_JOIN_PRIORITY TSCH_CONF_MAX_JOIN_PRIORITY
 #else
-#define TSCH_MAX_JOIN_PRIORITY 32
+#define TSCH_MAX_JOIN_PRIORITY 64
 #endif
 
 /* Join only secured networks? (discard EBs with security disabled) */

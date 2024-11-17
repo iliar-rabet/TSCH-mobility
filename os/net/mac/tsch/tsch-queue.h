@@ -191,13 +191,13 @@ void tsch_queue_init(void);
 
 
 
-# ifdef Q_STABLE
+#if Q_STABLE
     #include "net/ipv6/simple-udp.h"
     void tsch_queue_count_all_queues(void);
     #define NEG_PORT 4567
     #define NEG_PORT_SERVER 7654
     extern bool q_unstable;
-    #ifdef BC_STABLE
+    #if BC_STABLE
     extern bool bc_unstable;
     #endif
     extern uip_ipaddr_t * overflow_ip;

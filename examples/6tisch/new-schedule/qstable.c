@@ -1,5 +1,5 @@
 
-# ifdef Q_STABLE
+# if Q_STABLE
 static void
 neg_callback(struct simple_udp_connection *c,
           const uip_ipaddr_t *sender_addr,

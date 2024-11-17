@@ -9,27 +9,25 @@
 #include "sys/log.h"
 #include "services/orchestra/orchestra.h"
 
-// #include "schedule_ll.c"
-#include "neg.h"
+#include "sys/energest.h"
 
 #define LOG_MODULE "App"
 #define LOG_LEVEL LOG_LEVEL_INFO
 
 #define UDP_PORT	8765
-#define SEND_INTERVAL		  (10 * CLOCK_SECOND)
 
 
 PROCESS(node_process, "TSCH Schedule Node");
 
-# ifdef Q_STABLE
-  #define NUM_NODES 7
+# if Q_STABLE
+#include "neg.h"
     // static struct simple_udp_connection server_neg_conn;  
     static struct simple_udp_connection neg_conn;
     static uint16_t neg_counter;
     bool q_unstable=false;
     bool bc_unstable=false;
     int scheduled_slots[40];
-    #ifdef BC_STABLE
+    #if BC_STABLE
       static bool enable_bc;
       static struct ctimer ack_timer;
     #endif
@@ -69,47 +67,7 @@ data_rx_callback(struct simple_udp_connection *c,
 }
 
 // #define Q_STABLE
-# ifdef Q_STABLE
-
-// struct cluster{
-//   uip_ipaddr_t ip;
-//   int cluster;
-// }
-// struct cluster list_clusters[20];
-
-// // Agglomerative clustering using tree structure
-// void agglomerative_clustering(int tree[NUM_NODES][NUM_NODES], int clusters[], int num_nodes, int target_clusters) {
-//     int cluster_count = num_nodes;
-
-//     // Initialize each node as its own cluster
-//     for (int i = 0; i < num_nodes; i++) clusters[i] = i;
-
-//     while (cluster_count > target_clusters) {
-//         int min_dist = INT_MAX, cluster1 = -1, cluster2 = -1;
-
-//         // Find the closest pair of clusters based on BFS distance
-//         for (int i = 0; i < num_nodes; i++) {
-//             for (int j = i + 1; j < num_nodes; j++) {
-//                 if (clusters[i] != clusters[j]) {
-//                     int dist = bfs(tree, i, j);
-//                     if (dist < min_dist) {
-//                         min_dist = dist;
-//                         cluster1 = clusters[i];
-//                         cluster2 = clusters[j];
-//                     }
-//                 }
-//             }
-//         }
-
-//         // Merge the closest clusters
-//         for (int i = 0; i < num_nodes; i++) {
-//             if (clusters[i] == cluster2) clusters[i] = cluster1;
-//         }
-//         cluster_count--;
-//         printf("Merged clusters %d and %d. Remaining clusters: %d\n", cluster1, cluster2, cluster_count);
-//     }
-// }
-
+# if Q_STABLE
 
 void send_bc(){
   uip_sr_node_t *link;
@@ -127,9 +85,9 @@ void send_bc(){
 
     
     if(link->acked==false){
-      LOG_INFO("not acked:");
-      LOG_INFO_6ADDR(&child_ipaddr);
-      LOG_INFO("\n");
+      // LOG_INFO("not acked:");
+      // LOG_INFO_6ADDR(&child_ipaddr);
+      // LOG_INFO("\n");
       struct neg_pack p;
       p.is_broadcast=1;
       p.slotframe = ORCHESTRA_UNICAST_PERIOD/2 + neg_counter;  
@@ -137,9 +95,9 @@ void send_bc(){
       simple_udp_sendto(&neg_conn, (char *)&p, sizeof(p), &child_ipaddr);  
     }
     else{
-      LOG_INFO("acked ");
-      LOG_INFO_6ADDR(&child_ipaddr);
-      LOG_INFO("\n");
+      // LOG_INFO("acked ");
+      // LOG_INFO_6ADDR(&child_ipaddr);
+      // LOG_INFO("\n");
     }
     
     link = uip_sr_node_next(link);
@@ -147,20 +105,7 @@ void send_bc(){
   LOG_INFO("links: end of list\n");
 
 }
-// void set_ack_true(const uip_ipaddr_t * sender_addr){
-//   uip_ipaddr_t link_ipaddr;
-//   uip_sr_node_t *link;
-//   link = uip_sr_node_head();
-//   while(link != NULL) {
-//     NETSTACK_ROUTING.get_sr_node_ipaddr(&link_ipaddr, link);
 
-//     if(uip_ipaddr_cmp(&link_ipaddr,sender_addr)){
-//       LOG_INFO("setting ACK\n");
-//       link->acked=true;
-//     }
-//     link = uip_sr_node_next(link);
-//   }
-// }
 static void
 neg_callback(struct simple_udp_connection *c,
           const uip_ipaddr_t *sender_addr,
@@ -267,7 +212,7 @@ PROCESS_THREAD(node_process, ev, data)
   PROCESS_BEGIN();
   NETSTACK_ROUTING.root_start(); 
 
-  #ifdef BC_STABLE
+  #if BC_STABLE
   enable_bc=false;
   #endif
   simple_udp_register(&udp_conn, UDP_PORT, NULL, UDP_PORT, data_rx_callback);  
@@ -282,3 +227,39 @@ PROCESS_THREAD(node_process, ev, data)
   } 
   PROCESS_END();
 }
+
+
+// static unsigned long
+// to_seconds(uint64_t time)
+// {
+//   return (unsigned long)(time / ENERGEST_SECOND);
+// }
+
+// PROCESS_THREAD(energest_example_process, ev, data)
+// {
+//   static struct etimer periodic_timer;
+//   PROCESS_BEGIN();
+
+//   etimer_set(&periodic_timer, CLOCK_SECOND * 60);
+//   while(1) {
+//     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
+//     etimer_reset(&periodic_timer);
+
+//     /* Update all energest times. */
+//     energest_flush();
+
+//     printf("\nEnergest:\n");
+//     printf(" CPU          %4lus LPM      %4lus DEEP LPM %4lus  Total time %lus\n",
+//            to_seconds(energest_type_time(ENERGEST_TYPE_CPU)),
+//            to_seconds(energest_type_time(ENERGEST_TYPE_LPM)),
+//            to_seconds(energest_type_time(ENERGEST_TYPE_DEEP_LPM)),
+//            to_seconds(ENERGEST_GET_TOTAL_TIME()));
+//     printf(" Radio LISTEN %4lus TRANSMIT %4lus OFF      %4lus\n",
+//            to_seconds(energest_type_time(ENERGEST_TYPE_LISTEN)),
+//            to_seconds(energest_type_time(ENERGEST_TYPE_TRANSMIT)),
+//            to_seconds(ENERGEST_GET_TOTAL_TIME()
+//                       - energest_type_time(ENERGEST_TYPE_TRANSMIT)
+//                       - energest_type_time(ENERGEST_TYPE_LISTEN)));
+//   }
+//   PROCESS_END();
+// }

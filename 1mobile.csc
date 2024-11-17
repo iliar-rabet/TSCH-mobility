@@ -2,7 +2,7 @@
 <simconf version="2023090101">
   <simulation>
     <title>My simulation</title>
-    <randomseed>123456</randomseed>
+    <randomseed>12349</randomseed>
     <motedelay_us>1000000</motedelay_us>
     <radiomedium>
       org.contikios.cooja.radiomediums.UDGM
@@ -161,16 +161,16 @@
       <skin>org.contikios.cooja.plugins.skins.UDGMVisualizerSkin</skin>
       <viewport>4.026104669454298 0.0 0.0 4.026104669454298 -17.866616681718924 32.225399239187006</viewport>
     </plugin_config>
-    <bounds x="1" y="1" height="400" width="400" />
+    <bounds x="1" y="1" height="400" width="400" z="2" />
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.LogListener
     <plugin_config>
-      <filter>ID:3</filter>
+      <filter />
       <formatted_time />
       <coloring />
     </plugin_config>
-    <bounds x="400" y="160" height="240" width="1886" z="2" />
+    <bounds x="400" y="160" height="344" width="1886" z="1" />
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.TimeLine
@@ -200,27 +200,23 @@
   <plugin>
     org.contikios.cooja.plugins.Mobility
     <plugin_config>
-      <positions>[COOJA_DIR]/apps/positions.dat</positions>
+      <positions>/home/iliar/TSCH-mobility/positions2.dat</positions>
     </plugin_config>
     <bounds x="92" y="508" height="311" width="714" z="3" />
   </plugin>
+
   <plugin>
     org.contikios.cooja.plugins.ScriptRunner
     <plugin_config>
-      <script>TIMEOUT(1200000);
+      <script>TIMEOUT(1800010);
 
  while (true) {
+   log.log(time + ":" + id + ":" + msg + "\n");
    YIELD(); /* wait for another mote output */
  }</script>
       <active>true</active>
     </plugin_config>
-    <bounds x="1002" y="443" height="700" width="600" z="1" />
+    <bounds x="1002" y="443" height="700" width="600" />
   </plugin>
-  <plugin>
-    org.contikios.cooja.plugins.Mobility
-    <plugin_config>
-      <positions>[COOJA_DIR]/apps/positions.dat</positions>
-    </plugin_config>
-    <bounds x="115" y="544" height="200" width="500" z="6" />
-  </plugin>
+
 </simconf>

@@ -1,4 +1,3 @@
-uip_ipaddr_t * overflow_ip;
 
 extern struct tsch_slotframe *sf_unicast;
 extern struct tsch_slotframe *sf_common;

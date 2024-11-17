@@ -20,7 +20,7 @@
 
 PROCESS(node_process, "TSCH Schedule Node");
 
-# ifdef Q_STABLE
+# if Q_STABLE
     // static struct simple_udp_connection server_neg_conn;  
     static struct simple_udp_connection neg_conn;
     bool q_unstable=false;

@@ -312,7 +312,7 @@ uip_ds6_nbr_rm(uip_ds6_nbr_t *nbr)
   }
 
 #ifdef NETSTACK_CONF_DS6_NEIGHBOR_UPDATED_CALLBACK
-  linkaddr_t lladdr = {0};
+  linkaddr_t lladdr = {{0}};
 
   const uip_lladdr_t *plladdr = uip_ds6_nbr_get_ll(nbr);
   if(plladdr != NULL) {
